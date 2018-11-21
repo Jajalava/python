@@ -1,0 +1,34 @@
+def register(storage = None):
+    def wrapper(func):
+        if storage is not None: 
+            print('appending: %-30s in %s' %(func, storage))
+            storage.append(func)
+        return func
+    return wrapper
+
+class Person:
+    
+    registry = []
+    
+    @staticmethod
+    @register(registry)
+    def greeting(name):
+        print('Hello, my name is WHAT?: %s' % name)  
+    
+    @staticmethod
+    @register(registry)
+    def myage(age):
+        print('I\'m %s years old' % age)
+   
+    @staticmethod
+    @register(registry)
+    def goodbye():
+        print('Goodbye')
+
+if __name__ == '__main__':
+    funcs = Person.registry
+    funcs[0]('slim-shady'); funcs[1](45); funcs[2]()
+    
+    print('\n','*'*40, '\n', sep = '')
+    for func in funcs:
+        print(func.__name__)
