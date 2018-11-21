@@ -1,3 +1,7 @@
+# creates decorator, which appends function to class attribute-storage.
+# module with stored functions can be used as a collection of game effects 
+# that can be imported to game and applied to hero.
+
 def register(storage = None):
     def wrapper(func):
         if storage is not None: 
@@ -6,28 +10,28 @@ def register(storage = None):
         return func
     return wrapper
 
-class Person:
-    
+
+class Effects:
     registry = []
     
     @staticmethod
     @register(registry)
-    def greeting(name):
-        print('Hello, my name is WHAT?: %s' % name)  
+    def curse(value):
+        print('Decreasing endurance by %d' % value)  
     
     @staticmethod
     @register(registry)
-    def myage(age):
-        print('I\'m %s years old' % age)
+    def blessing(value):
+        print('Increasing stats by %.2f' % value)
    
     @staticmethod
     @register(registry)
-    def goodbye():
-        print('Goodbye')
+    def evil_eye():
+        print('Watch out!')
 
 if __name__ == '__main__':
-    funcs = Person.registry
-    funcs[0]('slim-shady'); funcs[1](45); funcs[2]()
+    funcs = Effects.registry
+    funcs[0](5); funcs[1](1/3); funcs[2]()
     
     print('\n','*'*40, '\n', sep = '')
     for func in funcs:
