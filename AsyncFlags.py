@@ -121,7 +121,7 @@ class FlagsAsyncioErrorHandler(FlagsAsyncio):
     async def download_one(self, session, semaphore, cc):
         """saves img if download is successful"""
         try:
-            async with await semaphore: # asyncio.Semaphore limits the max of concurrences
+            async with semaphore: # asyncio.Semaphore limits the max of concurrences
                 image = await self.get_flag(session, cc)
         except aiohttp.web.HTTPNotFound:
             msg = 'not found'
