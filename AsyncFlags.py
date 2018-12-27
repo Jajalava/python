@@ -128,7 +128,7 @@ class FlagsAsyncioErrorHandler(FlagsAsyncio):
         except Exception as exc:
             raise FetchException(cc) from exc
         else:
-            self.save_flag(img, cc)
+            self.save_flag(image, cc)
             msg = 'ok'
             
         self.statuses[msg] = self.statuses.get(msg, 0) + 1
@@ -139,13 +139,16 @@ class FlagsAsyncioErrorHandler(FlagsAsyncio):
     async def download_many(self):
         """gets semaphore and creates connection """
         semaphore = asyncio.Semaphore(self.concur_req) # __aenter__ for .acquire(), __aexit__ for .release()
+        results = []
         async with aiohttp.ClientSession() as session:
             #self.data.append('error') # testing exceptions handling
-            coros = [self.download_one(session, semaphore, cc) for cc in sorted(self.data[:1])]
+            coros = [self.download_one(session, semaphore, cc) for cc in sorted(self.data)]
+            
+            # asyncio.as_completed returns an iterable sequence of futures, 
+            # each of which must be awaited, so it must run inside a coroutine, which must be waited for too
             for future in asyncio.as_completed(coros): # returns an iterator for future objects
                 try:
                     res = await future
-                    print(res)
                 except FetchException as exc:
                     country_code = exc.country_code
                     try:
@@ -155,22 +158,25 @@ class FlagsAsyncioErrorHandler(FlagsAsyncio):
                     if self.verbose:
                         print('Error for %s:%s' % (country_code, error_msg))
                     self.statuses['error'] = self.statuses.get('error', 0) + 1
-            
-            
+                else:
+                    results.append(res)
+                    pass
+            return results
+        
+        
 def main(flags):
     loop = asyncio.new_event_loop()
     if flags.verbose: 
         start_time = time.time()
         
     to_do = flags.download_many()
-    print(to_do)
-    res, _ = loop.run_until_complete(to_do)
+    print('to_do:', to_do)
+    res, *_ = loop.run_until_complete(to_do)
     if flags.verbose: 
         print('\nDownloaded for {:.2f}'.format(time.time() - start_time))
     loop.close()
-    return flags.statuses
+    print(flags.statuses)
 
 if __name__ == '__main__':
     fa = FlagsAsyncioErrorHandler(*params)
     main(fa)
-
